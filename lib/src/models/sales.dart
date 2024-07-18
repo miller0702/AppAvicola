@@ -1,43 +1,61 @@
 import 'dart:convert';
 
-import 'package:appAvicola/src/models/rol.dart';
-
-Sales salesFromJson(String str) => Sales.fromJson(json.decode(str));
-Sales salesFromJsonUpdate(String str, Sales data) => Sales.fromJsonUpdate(json.decode(str), data.toJson());
-
-String salesToJson(Sales data) => jsonEncode(data.toJson());
-
 class Sales {
-  String? id;
-  String? nombre;
-  String? telefono;
-  String? fecha;
-  
+  int? id;
+  int clienteId;
+  int loteId;
+  String userId;
+  int cantidadAves;
+  List<num> canastasVacias;
+  List<num> canastasLLenas;
+  double precioKilo;
+  DateTime fecha;
+  String numeroFactura;
+  DateTime? createdAt;
+  DateTime? updatedAt;
 
-  Sales(
-      {this.id ,
-      this.nombre,
-      this.telefono,
-      this.fecha});
+  Sales({
+    this.id,
+    required this.clienteId,
+    required this.loteId,
+    required this.userId,
+    required this.cantidadAves,
+    required this.canastasVacias,
+    required this.canastasLLenas,
+    required this.precioKilo,
+    required this.fecha,
+    required this.numeroFactura,
+    required this.createdAt,
+    required this.updatedAt,
+  });
 
-  factory Sales.fromJson(Map<String, dynamic> json)  => Sales(
-        id: json["id"],
-        nombre: json["nombre"],
-        telefono: json["telefono"],
-        fecha: json["fecha"],
-      );
-  factory Sales.fromJsonUpdate(Map<String, dynamic> json,sales1)  => Sales(
-        id: json["id"],
-        nombre: json["nombre"] == null ? sales1.nombre !=null ? json["nombre"]=sales1.nombre : json["nombre"]=null : json["nombre"]=json["nombre"],
-        telefono: json["telefono"]== null ? sales1.telefono !=null ? json["telefono"]=sales1.telefono : json["telefono"]=null : json["telefono"]=json["telefono"],
-        fecha: json["fecha"]== null ? sales1.fecha !=null ? json["fecha"]=sales1.fecha : json["fecha"]=null : json["fecha"]=json["fecha"],
+  factory Sales.fromJson(Map<String, dynamic> json) => Sales(
+        id: json['id'],
+        clienteId: json['cliente_id'],
+        loteId: json['lote_id'],
+        userId: json['user_id'],
+        cantidadAves: json['cantidadaves'],
+        canastasVacias: List<num>.from(json['canastas_vacias']),
+        canastasLLenas: List<num>.from(json['canastas_llenas']),
+        precioKilo: json['preciokilo'].toDouble(),
+        fecha: DateTime.parse(json['fecha']),
+        numeroFactura: json['numerofactura'],
+        createdAt: DateTime.parse(json['created_at']),
+        updatedAt: DateTime.parse(json['updated_at']),
       );
 
   Map<String, dynamic> toJson() => {
-        "id": id,
-        "nombre": nombre,
-        "telefono": telefono,
-        "fecha": fecha,
-        
+        'id': id,
+        'cliente_id': clienteId,
+        'lote_id': loteId,
+        'user_id': userId,
+        'cantidadaves': cantidadAves,
+        'canastas_vacias': canastasVacias,
+        'canastas_llenas': canastasLLenas,
+        'preciokilo': precioKilo,
+        'fecha': fecha.toIso8601String(),
+        'numerofactura': numeroFactura,
+        'created_at': createdAt?.toIso8601String(),
+        'updated_at': updatedAt?.toIso8601String(),
       };
 }

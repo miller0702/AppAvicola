@@ -19,7 +19,7 @@ class FoodPage extends StatefulWidget {
 class _FoodPageState extends State<FoodPage> {
   FoodController _controller = FoodController();
   List<Food> _foodList = [];
-  DateTime? _selectedDate; 
+  DateTime? _selectedDate;
   int _rowsPerPage = 5;
   int _pageIndex = 0;
 
@@ -358,17 +358,32 @@ class _FoodPageState extends State<FoodPage> {
                                 children: [
                                   Text(
                                     'Fecha: ${DateFormat('dd-MM-yyyy').format(food.fecha ?? DateTime.now())}',
-                                    style: TextStyle(fontSize: 15),
+                                    style: TextStyle(
+                                      fontSize: 15,
+                                      color: isDarkMode
+                                          ? MyColors.whiteColor
+                                          : MyColors.darkWhiteColor,
+                                    ),
                                   ),
                                   SizedBox(
                                       height: 4), // Espacio entre los textos
                                   Text(
                                     'Cantidad Macho: ${food.cantidadmacho ?? ''}',
-                                    style: TextStyle(fontSize: 12),
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: isDarkMode
+                                          ? MyColors.whiteColor
+                                          : MyColors.darkWhiteColor,
+                                    ),
                                   ),
                                   Text(
                                     'Cantidad Hembra: ${food.cantidadhembra ?? ''}',
-                                    style: TextStyle(fontSize: 12),
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: isDarkMode
+                                          ? MyColors.whiteColor
+                                          : MyColors.darkWhiteColor,
+                                    ),
                                   ),
                                 ],
                               ),
@@ -420,16 +435,31 @@ class _FoodPageState extends State<FoodPage> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 IconButton(
-                  icon: Icon(Icons.arrow_back),
+                  icon: Icon(
+                    Icons.arrow_back,
+                    color: isDarkMode
+                        ? MyColors.whiteColor
+                        : MyColors.darkWhiteColor,
+                  ),
                   onPressed: () {
                     setState(() {
                       _pageIndex = _pageIndex > 0 ? _pageIndex - 1 : 0;
                     });
                   },
                 ),
-                Text('Página ${_pageIndex + 1}'),
+                Text('Página ${_pageIndex + 1}',
+                    style: TextStyle(
+                      color: isDarkMode
+                          ? MyColors.whiteColor
+                          : MyColors.darkWhiteColor,
+                    )),
                 IconButton(
-                  icon: Icon(Icons.arrow_forward),
+                  icon: Icon(
+                    Icons.arrow_forward,
+                    color: isDarkMode
+                        ? MyColors.whiteColor
+                        : MyColors.darkWhiteColor,
+                  ),
                   onPressed: () {
                     setState(() {
                       int maxPageIndex =

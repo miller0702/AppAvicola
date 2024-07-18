@@ -151,7 +151,7 @@ class _CustomersPageState extends State<CustomersPage> {
       appBar: AppBar(
         title: Row(
           children: [
-             Container(
+            Container(
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
               ),
@@ -269,9 +269,21 @@ class _CustomersPageState extends State<CustomersPage> {
                             child: ListTile(
                               title: Text(
                                 customer.nombre ?? '',
-                                style: TextStyle(fontSize: 17),
+                                style: TextStyle(
+                                  fontSize: 17,
+                                  color: isDarkMode
+                                      ? MyColors.whiteColor
+                                      : MyColors.darkWhiteColor,
+                                ),
                               ),
-                              subtitle: Text(customer.documento ?? ''),
+                              subtitle: Text(
+                                customer.documento ?? '',
+                                style: TextStyle(
+                                  color: isDarkMode
+                                      ? MyColors.whiteColor
+                                      : MyColors.darkWhiteColor,
+                                ),
+                              ),
                               trailing: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
@@ -321,16 +333,33 @@ class _CustomersPageState extends State<CustomersPage> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 IconButton(
-                  icon: Icon(Icons.arrow_back),
+                  icon: Icon(
+                    Icons.arrow_back,
+                    color: isDarkMode
+                        ? MyColors.whiteColor
+                        : MyColors.darkWhiteColor,
+                  ),
                   onPressed: () {
                     setState(() {
                       _pageIndex = _pageIndex > 0 ? _pageIndex - 1 : 0;
                     });
                   },
                 ),
-                Text('Página ${_pageIndex + 1}'),
+                Text(
+                  'Página ${_pageIndex + 1}',
+                  style: TextStyle(
+                    color: isDarkMode
+                        ? MyColors.whiteColor
+                        : MyColors.darkWhiteColor,
+                  ),
+                ),
                 IconButton(
-                  icon: Icon(Icons.arrow_forward),
+                  icon: Icon(
+                    Icons.arrow_forward,
+                    color: isDarkMode
+                        ? MyColors.whiteColor
+                        : MyColors.darkWhiteColor,
+                  ),
                   onPressed: () {
                     setState(() {
                       int maxPageIndex =

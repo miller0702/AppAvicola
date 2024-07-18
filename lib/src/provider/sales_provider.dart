@@ -1,7 +1,4 @@
-// ignore_for_file: avoid_print
-
 import 'dart:convert';
-
 import 'package:appAvicola/src/api/enviroment.dart';
 import 'package:appAvicola/src/models/response_api.dart';
 import 'package:appAvicola/src/models/sales.dart';
@@ -12,85 +9,73 @@ class SalesProvider {
   final String _url = Enviroment.API_APPAVICOLA;
   final String _api = "/api/sales";
   BuildContext? context;
-  Future? init(BuildContext context) {
+
+  SalesProvider();
+
+  Future<void> init(BuildContext context) async {
     this.context = context;
-    return null;
   }
 
-  Future<ResponseApi> findbyNombreOrTelefono(Sales sales) async {
+  Future<ResponseApi> createSales(Sales sales) async {
     try {
-      Uri url = Uri.https(_url, '$_api/finbyNombreorTelefono');
-      //String bodyParams = json.encode(sales);
-      String bodyParams = jsonEncode(<String, dynamic>{
-        "nombre": sales.nombre,
-        "telefono": sales.telefono,
-      });
-      Map<String, String> header = {'Content-type': 'application/json'};
-      final res = await http.post(url, headers: header, body: bodyParams);
-      final data = json.decode(res.body);
+      Uri url = Uri.https(_url, '$_api/register');
+      String bodyParams = jsonEncode(sales.toJson());
+      Map<String, String> headers = {'Content-type': 'application/json'};
+      final response = await http.post(url, headers: headers, body: bodyParams);
+      final data = json.decode(response.body);
       ResponseApi responseApi = ResponseApi.fromJson(data);
       return responseApi;
     } catch (e) {
-      print('Error: $e');
-      Map<String, bool> header = {'error': false};
-      return ResponseApi.fromJson(header);
+      print('Error in createSales: $e');
+      return ResponseApi(success: false, message: 'Connection error');
     }
   }
 
-  Future<ResponseApi> updateNombre(Sales sales) async {
+  Future<List<Sales>> fetchSales() async {
     try {
-      Uri url = Uri.https(_url, '$_api/updateNombre');
-      //String bodyParams = json.encode(sales);
-      String bodyParams =
-          jsonEncode(<String, dynamic>{"nombre": sales.nombre, "id": sales.id});
-      Map<String, String> header = {'Content-type': 'application/json'};
-      final res = await http.post(url, headers: header, body: bodyParams);
-      final data = json.decode(res.body);
-      ResponseApi responseApi = ResponseApi.fromJson(data);
-      return responseApi;
+      Uri url = Uri.https(_url, '$_api/getAll');
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        List<dynamic> data = json.decode(response.body);
+        List<Sales> salesList = data.map((json) => Sales.fromJson(json)).toList();
+        return salesList;
+      } else {
+        print('Error in fetchSales: ${response.statusCode}');
+        return [];
+      }
     } catch (e) {
-      print('Error: $e');
-      Map<String, bool> header = {'error': false};
-      return ResponseApi.fromJson(header);
+      print('Error in fetchSales: $e');
+      return [];
     }
   }
 
-  Future<ResponseApi> updateTelefono(Sales sales) async {
+  Future<ResponseApi> updateSales(Sales sales) async {
     try {
-      Uri url = Uri.https(_url, '$_api/updateTelefono');
-      //String bodyParams = json.encode(sales);
-      String bodyParams =
-          jsonEncode(<String, dynamic>{"telefono": sales.telefono, "id": sales.id});
-      Map<String, String> header = {'Content-type': 'application/json'};
-      final res = await http.post(url, headers: header, body: bodyParams);
-      final data = json.decode(res.body);
+      Uri url = Uri.https(_url, '$_api/update');
+      String bodyParams = jsonEncode(sales.toJson());
+      Map<String, String> headers = {'Content-type': 'application/json'};
+      final response = await http.put(url, headers: headers, body: bodyParams);
+      final data = json.decode(response.body);
       ResponseApi responseApi = ResponseApi.fromJson(data);
       return responseApi;
     } catch (e) {
-      print('Error: $e');
-      Map<String, bool> header = {'error': false};
-      return ResponseApi.fromJson(header);
+      print('Error in updateSales: $e');
+      return ResponseApi(success: false, message: 'Connection error');
     }
   }
 
-  Future<ResponseApi> create(Sales sales) async {
+  Future<ResponseApi> deleteSales(int salesId) async {
     try {
-      Uri url = Uri.https(_url, '$_api/create');
-      //String bodyParams = json.encode(sales);
-      String bodyParams = jsonEncode(<String, dynamic>{
-        "nombre": sales.nombre,
-        "telefono": sales.telefono,
-        "fecha": sales.fecha,
-      });
+      Uri url = Uri.https(_url, '$_api/delete/$salesId');
       Map<String, String> header = {'Content-type': 'application/json'};
-      final res = await http.post(url, headers: header, body: bodyParams);
+      final res = await http.delete(url, headers: header);
       final data = json.decode(res.body);
       ResponseApi responseApi = ResponseApi.fromJson(data);
       return responseApi;
     } catch (e) {
       print('Error: $e');
-      Map<String, bool> header = {'error': false};
-      return ResponseApi.fromJson(header);
+      return ResponseApi(success: false, message: 'Connection error');
     }
   }
 }

@@ -359,17 +359,32 @@ class _MortalityPageState extends State<MortalityPage> {
                                 children: [
                                   Text(
                                     'Fecha: ${DateFormat('dd-MM-yyyy').format(mortality.fecha ?? DateTime.now())}',
-                                    style: TextStyle(fontSize: 15),
+                                    style: TextStyle(
+                                      fontSize: 15,
+                                      color: isDarkMode
+                                          ? MyColors.whiteColor
+                                          : MyColors.darkWhiteColor,
+                                    ),
                                   ),
                                   SizedBox(
                                       height: 4), // Espacio entre los textos
                                   Text(
                                     'Cantidad Macho: ${mortality.cantidadmacho ?? ''}',
-                                    style: TextStyle(fontSize: 12),
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: isDarkMode
+                                          ? MyColors.whiteColor
+                                          : MyColors.darkWhiteColor,
+                                    ),
                                   ),
                                   Text(
                                     'Cantidad Hembra: ${mortality.cantidadhembra ?? ''}',
-                                    style: TextStyle(fontSize: 12),
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: isDarkMode
+                                          ? MyColors.whiteColor
+                                          : MyColors.darkWhiteColor,
+                                    ),
                                   ),
                                 ],
                               ),
@@ -421,16 +436,33 @@ class _MortalityPageState extends State<MortalityPage> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 IconButton(
-                  icon: Icon(Icons.arrow_back),
+                  icon: Icon(
+                    Icons.arrow_back,
+                    color: isDarkMode
+                        ? MyColors.whiteColor
+                        : MyColors.darkWhiteColor,
+                  ),
                   onPressed: () {
                     setState(() {
                       _pageIndex = _pageIndex > 0 ? _pageIndex - 1 : 0;
                     });
                   },
                 ),
-                Text('Página ${_pageIndex + 1}'),
+                Text(
+                  'Página ${_pageIndex + 1}',
+                  style: TextStyle(
+                    color: isDarkMode
+                        ? MyColors.whiteColor
+                        : MyColors.darkWhiteColor,
+                  ),
+                ),
                 IconButton(
-                  icon: Icon(Icons.arrow_forward),
+                  icon: Icon(
+                    Icons.arrow_forward,
+                    color: isDarkMode
+                        ? MyColors.whiteColor
+                        : MyColors.darkWhiteColor,
+                  ),
                   onPressed: () {
                     setState(() {
                       int maxPageIndex =

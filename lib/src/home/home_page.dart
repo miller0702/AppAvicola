@@ -98,6 +98,18 @@ class _HomePageState extends State<HomePage> {
         ),
         backgroundColor:
             isDarkMode ? MyColors.darkWhiteColor : MyColors.whiteColor,
+        actions: [
+          IconButton(
+            icon: Icon(
+              Icons.menu, // Cambia el ícono aquí según lo necesites
+              color: MyColors
+                  .primaryColor, // Cambia el color aquí según lo necesites
+            ),
+            onPressed: () {
+              _scaffoldKey.currentState!.openEndDrawer();
+            },
+          ),
+        ],
       ),
       backgroundColor:
           isDarkMode ? MyColors.darkWhiteColor : MyColors.whiteColor,
@@ -153,7 +165,7 @@ class _HomePageState extends State<HomePage> {
             setState(() {
               _selectedIndex = index < 5
                   ? index
-                  : index + 1; // Ajusta el índice para las páginas adicionales
+                  : index + 1;
             });
           },
           children: _buildPages(),
