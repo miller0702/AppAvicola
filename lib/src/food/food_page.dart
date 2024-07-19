@@ -22,6 +22,7 @@ class _FoodPageState extends State<FoodPage> {
   DateTime? _selectedDate;
   int _rowsPerPage = 5;
   int _pageIndex = 0;
+  bool _isLoading = true;
 
   @override
   void initState() {
@@ -31,6 +32,9 @@ class _FoodPageState extends State<FoodPage> {
   }
 
   void _loadFood() async {
+    setState(() {
+      _isLoading = true; // Mostrar indicador de carga
+    });
     try {
       List<Food> food = await _controller.getFood();
       setState(() {
@@ -39,6 +43,10 @@ class _FoodPageState extends State<FoodPage> {
       print('Alimentos cargados: ${_foodList.length}');
     } catch (e) {
       print('Error al cargar alimentos: $e');
+    } finally {
+      setState(() {
+        _isLoading = false; // Ocultar indicador de carga
+      });
     }
   }
 
@@ -318,8 +326,10 @@ class _FoodPageState extends State<FoodPage> {
             ),
           ),
           Expanded(
-            child: _foodList.isEmpty
+            child: _isLoading
                 ? Center(child: CircularProgressIndicator())
+                : _foodList.isEmpty
+                    ? Center(child: Text('Actualmente no hay registros.', style: TextStyle(color: isDarkMode ? MyColors.whiteColor : MyColors.darkWhiteColor),))
                 : RefreshIndicator(
                     onRefresh: _refresh,
                     child: ListView.builder(
@@ -491,4 +501,5 @@ class _FoodPageState extends State<FoodPage> {
       ),
     );
   }
+
 }

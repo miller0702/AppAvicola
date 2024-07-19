@@ -4,6 +4,7 @@ import 'dart:ui';
 import 'package:appAvicola/src/customers/customers_page.dart';
 import 'package:appAvicola/src/food/food_page.dart';
 import 'package:appAvicola/src/mortality/mortality_page.dart';
+import 'package:appAvicola/src/sales/sales_page.dart';
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:appAvicola/src/home/home_controller.dart';
 import 'package:appAvicola/src/utils/my_colors.dart';
@@ -88,14 +89,15 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       key: _scaffoldKey,
       appBar: AppBar(
-        centerTitle: true,
         title: Image.asset(
           isDarkMode
               ? 'assets/img/logos/logoApp.png'
               : 'assets/img/logos/logo2.png',
           fit: BoxFit.cover,
           width: 80,
+
         ),
+        
         backgroundColor:
             isDarkMode ? MyColors.darkWhiteColor : MyColors.whiteColor,
         actions: [
@@ -452,98 +454,116 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _salesScreen() {
-    return Center(child: Text('Ventas'));
+    return SalesPage();
   }
 
   Widget _foodScreen() {
     return FoodPage();
   }
+Widget _textHome() {
+  String? firstName = _con.user?.name?.split(' ')[0];
+  String? lastName = _con.user?.lastname?.split(' ')[0];
 
-  Widget _textHome() {
-    String? firstName = _con.user?.name?.split(' ')[0];
-    String? lastName = _con.user?.lastname?.split(' ')[0];
-
-    return Container(
-      width: double.infinity,
-      margin: EdgeInsets.only(bottom: 20, left: 20, right: 20),
-      padding: EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(30),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.2),
-            spreadRadius: 0.5,
-            blurRadius: 7,
-            offset: const Offset(0, 0),
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      // Texto de bienvenida
+      Center(
+        
+        child: Text(
+          'BIENVENIDO',
+          style: TextStyle(
+            color: MyColors.primaryColor,
+            fontWeight: FontWeight.bold,
+            fontSize: 28,
+            fontFamily: 'NimbusSans',
           ),
-        ],
-        gradient: LinearGradient(
-          colors: [
-            MyColors.primaryColor,
-            MyColors.secundaryColor,
-          ],
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          stops: [0.0, 1.0],
         ),
       ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                '${firstName ?? ''} ${lastName ?? ''}',
-                style: TextStyle(
-                  color: MyColors.whiteColor,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 25,
-                  fontFamily: 'NimbusSans',
-                ),
-                textAlign: TextAlign.left,
-              ),
-              SizedBox(height: 10),
-              Text(
-                _con.user?.email ?? ' ',
-                style: TextStyle(
-                  color: MyColors.whiteColor,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 15,
-                  fontFamily: 'NimbusSans',
-                ),
-                textAlign: TextAlign.left,
-              ),
-              Text(
-                _con.user?.phone ?? ' ',
-                style: TextStyle(
-                  color: MyColors.whiteColor,
-                  fontSize: 15,
-                  fontFamily: 'NimbusSans',
-                ),
-                textAlign: TextAlign.left,
-              ),
+      SizedBox(height: 10), // Espacio entre el saludo y el contenedor
+      Container(
+        width: double.infinity,
+        margin: EdgeInsets.only(bottom: 20, left: 20, right: 20, top: 0),
+        padding: EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(30),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.2),
+              spreadRadius: 0.5,
+              blurRadius: 7,
+              offset: const Offset(0, 0),
+            ),
+          ],
+          gradient: LinearGradient(
+            colors: [
+              MyColors.primaryColor,
+              MyColors.secundaryColor,
             ],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            stops: [0.0, 1.0],
           ),
-          Container(
-            height: 120,
-            width: 120,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              image: DecorationImage(
-                fit: BoxFit.cover,
-                image: _con.user?.image != null
-                    ? NetworkImage(_con.user!.image!)
-                    : NetworkImage(
-                        'http://www.allianceplast.com/wp-content/uploads/no-image.png'),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '${firstName ?? ''} ${lastName ?? ''}',
+                  style: TextStyle(
+                    color: MyColors.whiteColor,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 25,
+                    fontFamily: 'NimbusSans',
+                  ),
+                  textAlign: TextAlign.left,
+                ),
+                SizedBox(height: 5),
+                Text(
+                  _con.user?.email ?? ' ',
+                  style: TextStyle(
+                    color: MyColors.whiteColor,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 15,
+                    fontFamily: 'NimbusSans',
+                  ),
+                  textAlign: TextAlign.left,
+                ),
+                Text(
+                  _con.user?.phone ?? ' ',
+                  style: TextStyle(
+                    color: MyColors.whiteColor,
+                    fontSize: 15,
+                    fontFamily: 'NimbusSans',
+                  ),
+                  textAlign: TextAlign.left,
+                ),
+              ],
+            ),
+            Container(
+              height: 120,
+              width: 120,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                image: DecorationImage(
+                  fit: BoxFit.cover,
+                  image: _con.user?.image != null
+                      ? NetworkImage(_con.user!.image!)
+                      : NetworkImage(
+                          'http://www.allianceplast.com/wp-content/uploads/no-image.png'),
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
-    );
-  }
+    ],
+  );
+}
 
   Widget __buttonAlimento() {
     final themeModel = Provider.of<ThemeModel>(context);

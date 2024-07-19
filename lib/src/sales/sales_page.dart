@@ -1,135 +1,218 @@
-import 'dart:ui';
-import 'package:appAvicola/icons_customer_icons.dart';
-import 'package:appAvicola/src/edit/profile/edit_profile_page.dart';
-import 'package:appAvicola/src/sales/sales_controller.dart';
-import 'package:appAvicola/icons_customer_icons.dart';
-import 'package:appAvicola/src/home/home_page.dart';
-import 'package:appAvicola/src/models/rol.dart';
+import 'package:appAvicola/src/sales/sales_detail.dart';
 import 'package:appAvicola/src/utils/my_colors.dart';
+import 'package:appAvicola/src/utils/theme_model.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
-import 'package:flutter/services.dart';
-
-import '../provider/sales_provider.dart';
-import '../utils/shared_pref.dart';
+import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
+import 'sales_controller.dart';
+import 'sales_register.dart'; // Asegúrate de importar la nueva página aquí
 
 class SalesPage extends StatefulWidget {
+  const SalesPage({Key? key}) : super(key: key);
+
   @override
   _SalesPageState createState() => _SalesPageState();
 }
 
 class _SalesPageState extends State<SalesPage> {
-  SalesController salesController = SalesController();
+  final SalesController salesController = SalesController();
+  DateTime? _selectedDate;
+  int _rowsPerPage = 5;
+  int _pageIndex = 0;
 
   @override
   void initState() {
     super.initState();
-    salesController.init(context, refresh);
+    salesController.init(context, () {});
   }
 
-  void refresh() {
-    setState(() {});
+  void _openRegisterPage() {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (context) => RegisterSalePage()),
+    );
+  }
+
+  Future<void> _refresh() async {
+    salesController.getSales();
   }
 
   @override
   Widget build(BuildContext context) {
+    final themeModel = Provider.of<ThemeModel>(context);
+    final isDarkMode = themeModel.isDarkMode;
+
     return Scaffold(
-      appBar: AppBar(title: Text('Registrar Venta')),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            children: [
-              TextField(
-                controller: salesController.clienteIdController,
-                decoration: InputDecoration(labelText: 'Cliente ID'),
+      appBar: AppBar(
+        title: Row(
+          children: [
+            Container(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
               ),
-              TextField(
-                controller: salesController.loteIdController,
-                decoration: InputDecoration(labelText: 'Lote ID'),
+              padding: EdgeInsets.all(8),
+              child: Image.asset(
+                'assets/img/iconsHome/homeVentas.png',
+                width: 24,
+                height: 24,
               ),
-              TextField(
-                controller: salesController.userIdController,
-                decoration: InputDecoration(labelText: 'User ID'),
-              ),
-              TextField(
-                controller: salesController.cantidadAvesController,
-                decoration: InputDecoration(labelText: 'Cantidad Aves'),
-              ),
-              TextField(
-                controller: salesController.precioKiloController,
-                decoration: InputDecoration(labelText: 'Precio por Kilo'),
-              ),
-              TextField(
-                controller: salesController.fechaController,
-                decoration: InputDecoration(labelText: 'Fecha'),
-              ),
-              TextField(
-                controller: salesController.numeroFacturaController,
-                decoration: InputDecoration(labelText: 'Número de Factura'),
-              ),
-              SizedBox(height: 16),
-              Text('Canastas Vacías'),
-              ListView.builder(
-                shrinkWrap: true,
-                itemCount: salesController.canastasVaciasControllers.length,
-                itemBuilder: (context, index) {
-                  return Row(
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          controller: salesController.canastasVaciasControllers[index],
-                          decoration: InputDecoration(labelText: 'Canasta Vacia ${index + 1}'),
-                        ),
-                      ),
-                      IconButton(
-                        icon: Icon(Icons.delete),
-                        onPressed: () => salesController.removeCanastaVacia(index),
-                      ),
-                    ],
-                  );
-                },
-              ),
-              ElevatedButton(
-                onPressed: salesController.addCanastaVacia,
-                child: Text('Agregar Canasta Vacia'),
-              ),
-              SizedBox(height: 16),
-              Text('Canastas Llenas'),
-              ListView.builder(
-                shrinkWrap: true,
-                itemCount: salesController.canastasLlenasControllers.length,
-                itemBuilder: (context, index) {
-                  return Row(
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          controller: salesController.canastasLlenasControllers[index],
-                          decoration: InputDecoration(labelText: 'Canasta Llena ${index + 1}'),
-                        ),
-                      ),
-                      IconButton(
-                        icon: Icon(Icons.delete),
-                        onPressed: () => salesController.removeCanastaLlena(index),
-                      ),
-                    ],
-                  );
-                },
-              ),
-              ElevatedButton(
-                onPressed: salesController.addCanastaLlena,
-                child: Text('Agregar Canasta Llena'),
-              ),
-              SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: salesController.register,
-                child: Text('Registrar Venta'),
-              ),
-            ],
-          ),
+            ),
+            SizedBox(width: 8),
+            Text('REGISTRO DE VENTAS',
+                style: TextStyle(
+                  color: isDarkMode
+                      ? MyColors.whiteColor
+                      : MyColors.darkWhiteColor,
+                )),
+          ],
         ),
+        backgroundColor: isDarkMode ? MyColors.darkWhiteColor : MyColors.whiteColor,
+        actions: [
+          IconButton(
+            icon: Icon(
+              Icons.search,
+              color: isDarkMode ? MyColors.whiteColor : MyColors.darkWhiteColor,
+            ),
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return AlertDialog(
+                    title: Text('Filtrar Ventas por Fecha'),
+                    content: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        TextField(
+                          readOnly: true,
+                          controller: TextEditingController(
+                            text: _selectedDate == null
+                                ? 'Seleccionar Fecha'
+                                : 'Fecha seleccionada: ${DateFormat('yyyy-MM-dd').format(_selectedDate!)}',
+                          ),
+                          decoration: InputDecoration(
+                            labelText: 'Fecha',
+                            prefixIcon: Icon(Icons.calendar_today),
+                          ),
+                          onTap: () async {
+                            DateTime? pickedDate = await showDatePicker(
+                              context: context,
+                              initialDate: _selectedDate ?? DateTime.now(),
+                              firstDate: DateTime(2000),
+                              lastDate: DateTime(2101),
+                            );
+                            if (pickedDate != null) {
+                              setState(() {
+                                _selectedDate = pickedDate;
+                                _pageIndex = 0; // Resetear la página al cambiar la fecha
+                              });
+                            }
+                          },
+                        ),
+                      ],
+                    ),
+                    actions: [
+                      ElevatedButton(
+                        onPressed: () {
+                          setState(() {
+                            _selectedDate = null; // Limpiar filtro de fecha
+                            _pageIndex = 0; // Resetear la página al limpiar el filtro
+                            Navigator.of(context).pop();
+                          });
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red,
+                        ),
+                        child: Text('Limpiar Filtro', style: TextStyle(color: Colors.white)),
+                      ),
+                    ],
+                  );
+                },
+              );
+            },
+          ),
+        ],
+      ),
+      backgroundColor: isDarkMode ? MyColors.darkWhiteColor : MyColors.whiteColor,
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 20.0),
+            child: ElevatedButton(
+              onPressed: _openRegisterPage, // Cambia la acción del botón
+              style: ElevatedButton.styleFrom(
+                backgroundColor: MyColors.primaryColor,
+              ),
+              child: Text(
+                'Registrar Venta',
+                style: TextStyle(color: Colors.white),
+              ),
+            ),
+          ),
+          Expanded(
+            child: salesController.salesList.isEmpty
+                ? Center(child: CircularProgressIndicator())
+                : RefreshIndicator(
+                    onRefresh: _refresh,
+                    child: ListView.builder(
+                      itemCount: salesController.getCurrentPageSales(_pageIndex, _rowsPerPage).length,
+                      itemBuilder: (context, index) {
+                        var sale = salesController.getCurrentPageSales(_pageIndex, _rowsPerPage)[index];
+                        return GestureDetector(
+                          onTap: () {
+                            showDialog(
+                              context: context,
+                              builder: (BuildContext context) {
+                                return SalesDetailPage(sale: sale);
+                              },
+                            );
+                          },
+                          child: Card(
+                            elevation: 3,
+                            child: ListTile(
+                              title: Text('Número de Factura: ${sale.numeroFactura}'),
+                              subtitle: Text('Fecha: ${DateFormat('yyyy-MM-dd').format(sale.fecha!)}'),
+                              trailing: Icon(Icons.arrow_forward_ios, color: MyColors.primaryColor),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+          ),
+          Padding(
+            padding: EdgeInsets.symmetric(vertical: 10),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                IconButton(
+                  onPressed: () {
+                    setState(() {
+                      if (_pageIndex > 0) {
+                        _pageIndex--;
+                      }
+                    });
+                  },
+                  icon: Icon(Icons.arrow_back_ios, color: MyColors.primaryColor),
+                ),
+                Text(
+                  'Página ${_pageIndex + 1}',
+                  style: TextStyle(color: isDarkMode ? MyColors.whiteColor : MyColors.darkWhiteColor),
+                ),
+                IconButton(
+                  onPressed: () {
+                    setState(() {
+                      if ((_pageIndex + 1) * _rowsPerPage < salesController.salesList.length) {
+                        _pageIndex++;
+                      }
+                    });
+                  },
+                  icon: Icon(Icons.arrow_forward_ios, color: MyColors.primaryColor),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
 }
-

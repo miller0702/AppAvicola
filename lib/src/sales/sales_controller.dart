@@ -1,3 +1,7 @@
+import 'package:appAvicola/src/models/lots.dart';
+import 'package:appAvicola/src/models/customers.dart';
+import 'package:appAvicola/src/provider/customers_provider.dart';
+import 'package:appAvicola/src/provider/lot_provider.dart';
 import 'package:appAvicola/src/provider/sales_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -9,7 +13,10 @@ import '../utils/my_colors.dart';
 import '../utils/theme_model.dart';
 
 class SalesController {
-  BuildContext? context;
+  late BuildContext context;
+  late Function refresh;
+
+  List<Sales> salesList = [];
   TextEditingController clienteIdController = TextEditingController();
   TextEditingController loteIdController = TextEditingController();
   TextEditingController userIdController = TextEditingController();
@@ -20,7 +27,37 @@ class SalesController {
   TextEditingController fechaController = TextEditingController();
   TextEditingController numeroFacturaController = TextEditingController();
   SalesProvider salesProvider = SalesProvider();
-  Function? refresh;
+
+  List<Customers> customersList = [];
+  List<Lots> lotsList = [];
+  CustomersProvider customersProvider = CustomersProvider();
+  LotsProvider lotsProvider = LotsProvider();
+  int? selectedClienteId;
+  int? selectedLoteId;
+
+  Future<void> init(BuildContext context, Function refreshCallback) async {
+    this.context = context;
+    this.refresh = refreshCallback;
+
+    await loadCustomers();
+    await loadLots();
+  }
+
+  Future<void> loadCustomers() async {
+    try {
+      customersList = await customersProvider.fetchCustomers();
+    } catch (e) {
+      print('Error al cargar clientes: $e');
+    }
+  }
+
+  Future<void> loadLots() async {
+    try {
+      lotsList = await lotsProvider.fetchLots();
+    } catch (e) {
+      print('Error al cargar lotes: $e');
+    }
+  }
 
   Future<List<Sales>> getSales() async {
     try {
@@ -35,33 +72,60 @@ class SalesController {
   List<TextEditingController> canastasVaciasControllers = [];
   List<TextEditingController> canastasLlenasControllers = [];
 
-    void init(BuildContext context, Function refresh) {
-    this.context = context;
-    this.refresh = refresh;
-  }
+  TextEditingController canastasDiferenciaController = TextEditingController();
+  TextEditingController totalVentaController = TextEditingController();
+
+  ValueNotifier<void> updateNotifier = ValueNotifier<void>(null);
 
   void addCanastaVacia() {
     canastasVaciasControllers.add(TextEditingController());
-    refresh?.call();
   }
 
   void removeCanastaVacia(int index) {
     if (index >= 0 && index < canastasVaciasControllers.length) {
+      canastasVaciasControllers[index].dispose();
       canastasVaciasControllers.removeAt(index);
-      refresh?.call();
     }
   }
 
   void addCanastaLlena() {
     canastasLlenasControllers.add(TextEditingController());
-    refresh?.call();
   }
 
   void removeCanastaLlena(int index) {
     if (index >= 0 && index < canastasLlenasControllers.length) {
+      canastasLlenasControllers[index].dispose();
       canastasLlenasControllers.removeAt(index);
-      refresh?.call();
     }
+  }
+
+  void calculateDifferenceAndTotal() {
+    double totalVacias = canastasVaciasControllers.fold(
+        0, (sum, controller) => sum + (double.tryParse(controller.text) ?? 0));
+    double totalLlenas = canastasLlenasControllers.fold(
+        0, (sum, controller) => sum + (double.tryParse(controller.text) ?? 0));
+    double diferencia = totalLlenas - totalVacias;
+
+    canastasDiferenciaController.text = diferencia.toString();
+    int precioPorKilo = int.tryParse(precioKiloController.text) ?? 0;
+    totalVentaController.text = (diferencia * precioPorKilo).toString();
+  }
+
+  Future<List<Sales>> getFood() async {
+    try {
+      List<Sales> foodList = await salesProvider.fetchSales();
+      return foodList;
+    } catch (e) {
+      print('Error en getFood: $e');
+      return [];
+    }
+  }
+
+  List<Sales> getCurrentPageSales(int pageIndex, int rowsPerPage) {
+    int startIndex = pageIndex * rowsPerPage;
+    int endIndex = startIndex + rowsPerPage;
+    endIndex = endIndex > salesList.length ? salesList.length : endIndex;
+    return salesList.sublist(startIndex, endIndex);
   }
 
   Future<void> register() async {
@@ -100,8 +164,10 @@ class SalesController {
     int clienteId = int.tryParse(clienteIdStr) ?? 0;
     int loteId = int.tryParse(loteIdStr) ?? 0;
     double precioKilo = double.tryParse(precioKiloStr) ?? 0.0;
-    List<dynamic> canastasVacias = canastasVaciasStr.split(',').map((e) => double.tryParse(e) ?? 0.0).toList();
-    List<dynamic> canastasLLenas = canastasLLenasStr.split(',').map((e) => double.tryParse(e) ?? 0.0).toList();
+    List<num> canastasVacias =
+        canastasVaciasStr.split(',').map((e) => num.tryParse(e) ?? 0).toList();
+    List<num> canastasLLenas =
+        canastasLLenasStr.split(',').map((e) => num.tryParse(e) ?? 0).toList();
     DateTime parsedFecha = DateTime.parse(fechaStr);
 
     Sales sales = Sales(
@@ -114,6 +180,8 @@ class SalesController {
       precioKilo: precioKilo,
       fecha: parsedFecha,
       numeroFactura: numeroFacturaStr,
+      createdAt: DateTime.now(),
+      updatedAt: DateTime.now(),
     );
 
     ResponseApi response = await salesProvider.createSales(sales);
@@ -141,16 +209,35 @@ class SalesController {
     }
   }
 
+  void dispose() {
+    clienteIdController.dispose();
+    loteIdController.dispose();
+    userIdController.dispose();
+    cantidadAvesController.dispose();
+    precioKiloController.dispose();
+    fechaController.dispose();
+    numeroFacturaController.dispose();
+    canastasDiferenciaController.dispose();
+    totalVentaController.dispose();
+
+    for (var controller in canastasVaciasControllers) {
+      controller.dispose();
+    }
+    for (var controller in canastasLlenasControllers) {
+      controller.dispose();
+    }
+  }
+
   Future<void> editSales(Sales sales) async {
     clienteIdController.text = sales.clienteId.toString();
     loteIdController.text = sales.loteId.toString();
-    userIdController.text = sales.userId;
+    userIdController.text = sales.userId!;
     cantidadAvesController.text = sales.cantidadAves.toString();
-    canastasVaciasController.text = sales.canastasVacias.join(',');
-    canastasLLenasController.text = sales.canastasLLenas.join(',');
+    canastasVaciasController.text = sales.canastasVacias?.join(',') ?? '';
+    canastasLLenasController.text = sales.canastasLLenas?.join(',') ?? '';
     precioKiloController.text = sales.precioKilo.toString();
-    fechaController.text = DateFormat('yyyy-MM-dd').format(sales.fecha);
-    numeroFacturaController.text = sales.numeroFactura;
+    fechaController.text = DateFormat('yyyy-MM-dd').format(sales.fecha!);
+    numeroFacturaController.text = sales.numeroFactura!;
 
     showDialog(
       context: context!,
@@ -274,8 +361,7 @@ class SalesController {
                 String newClienteIdStr = clienteIdController.text.trim();
                 String newLoteIdStr = loteIdController.text.trim();
                 String newUserIdStr = userIdController.text.trim();
-                String newCantidadAvesStr =
-                    cantidadAvesController.text.trim();
+                String newCantidadAvesStr = cantidadAvesController.text.trim();
                 String newCanastasVaciasStr =
                     canastasVaciasController.text.trim();
                 String newCanastasLLenasStr =
@@ -310,10 +396,14 @@ class SalesController {
                 int newClienteId = int.tryParse(newClienteIdStr) ?? 0;
                 int newLoteId = int.tryParse(newLoteIdStr) ?? 0;
                 double newPrecioKilo = double.tryParse(newPrecioKiloStr) ?? 0.0;
-                List<dynamic> newCanastasVacias =
-                    newCanastasVaciasStr.split(',').map((e) => double.tryParse(e) ?? 0.0).toList();
-                List<dynamic> newCanastasLLenas =
-                    newCanastasLLenasStr.split(',').map((e) => double.tryParse(e) ?? 0.0).toList();
+                List<num> newCanastasVacias = newCanastasVaciasStr
+                    .split(',')
+                    .map((e) => num.tryParse(e) ?? 0)
+                    .toList();
+                List<num> newCanastasLLenas = newCanastasLLenasStr
+                    .split(',')
+                    .map((e) => num.tryParse(e) ?? 0)
+                    .toList();
                 DateTime newParsedFecha = DateTime.parse(newFechaStr);
 
                 Sales updatedSales = Sales(
@@ -327,6 +417,9 @@ class SalesController {
                   precioKilo: newPrecioKilo,
                   fecha: newParsedFecha,
                   numeroFactura: newNumeroFacturaStr,
+                  createdAt:
+                      sales.createdAt, // Asegúrate de asignar estos campos
+                  updatedAt: DateTime.now(),
                 );
 
                 var response = await salesProvider.updateSales(updatedSales);
@@ -389,11 +482,6 @@ class SalesController {
         ),
       );
     }
-  }
-
-  void init(BuildContext context, Function() refreshCallback) {
-    this.context = context;
-    this.refresh = refreshCallback;
   }
 
   void clearControllers() {

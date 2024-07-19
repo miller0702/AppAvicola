@@ -22,6 +22,7 @@ class _MortalityPageState extends State<MortalityPage> {
   DateTime? _selectedDate;
   int _rowsPerPage = 5;
   int _pageIndex = 0;
+    bool _isLoading = true;
 
   @override
   void initState() {
@@ -31,16 +32,24 @@ class _MortalityPageState extends State<MortalityPage> {
   }
 
   void _loadMortality() async {
+    setState(() {
+      _isLoading = true; // Mostrar indicador de carga
+    });
     try {
       List<Mortality> mortality = await _controller.getMortality();
       setState(() {
         _mortalityList = mortality;
       });
-      print('Mortalidad cargada: ${_mortalityList.length}');
+      print('Alimentos cargados: ${_mortalityList.length}');
     } catch (e) {
-      print('Error al cargar mortalidads: $e');
+      print('Error al cargar alimentos: $e');
+    } finally {
+      setState(() {
+        _isLoading = false; // Ocultar indicador de carga
+      });
     }
   }
+
 
   Future<void> _refresh() async {
     _loadMortality();
@@ -318,8 +327,10 @@ class _MortalityPageState extends State<MortalityPage> {
             ),
           ),
           Expanded(
-            child: _mortalityList.isEmpty
+            child: _isLoading
                 ? Center(child: CircularProgressIndicator())
+                : _mortalityList.isEmpty
+                    ? Center(child: Text('Actualmente no hay registros.', style: TextStyle(color: isDarkMode ? MyColors.whiteColor : MyColors.darkWhiteColor),))
                 : RefreshIndicator(
                     onRefresh: _refresh,
                     child: ListView.builder(

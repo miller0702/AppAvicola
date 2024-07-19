@@ -20,6 +20,7 @@ class _CustomersPageState extends State<CustomersPage> {
   String _filterText = '';
   int _rowsPerPage = 5;
   int _pageIndex = 0;
+  bool _isLoading = true;
 
   @override
   void initState() {
@@ -29,13 +30,20 @@ class _CustomersPageState extends State<CustomersPage> {
   }
 
   void _loadCustomers() async {
+    setState(() {
+      _isLoading = true; // Mostrar el indicador de carga
+    });
     try {
       List<Customers> customers = await _controller.getCustomers();
       setState(() {
         _customersList = customers;
+        _isLoading = false; // Ocultar el indicador de carga
       });
       print('Clientes cargados: ${_customersList.length}');
     } catch (e) {
+      setState(() {
+        _isLoading = false; // Ocultar el indicador de carga en caso de error
+      });
       print('Error al cargar clientes: $e');
     }
   }
@@ -142,7 +150,7 @@ class _CustomersPageState extends State<CustomersPage> {
     return filteredCustomers.sublist(startIndex, endIndex);
   }
 
-  @override
+ @override
   Widget build(BuildContext context) {
     final themeModel = Provider.of<ThemeModel>(context);
     final isDarkMode = themeModel.isDarkMode;
@@ -229,102 +237,104 @@ class _CustomersPageState extends State<CustomersPage> {
             ),
           ),
           Expanded(
-            child: _customersList.isEmpty
+            child: _isLoading
                 ? Center(child: CircularProgressIndicator())
-                : RefreshIndicator(
-                    onRefresh: _refresh,
-                    child: ListView.builder(
-                      itemCount: getCurrentPageCustomers().length,
-                      itemBuilder: (context, index) {
-                        Customers customer = getCurrentPageCustomers()[index];
-                        return GestureDetector(
-                          onTap: () {
-                            showDialog(
-                              context: context,
-                              builder: (BuildContext context) {
-                                return CustomerDetailPage(customer: customer);
+                : _customersList.isEmpty
+                    ? Center(child: Text('Actualmente no hay registros.', style: TextStyle(color: isDarkMode ? MyColors.whiteColor : MyColors.darkWhiteColor),))
+                    : RefreshIndicator(
+                        onRefresh: _refresh,
+                        child: ListView.builder(
+                          itemCount: getCurrentPageCustomers().length,
+                          itemBuilder: (context, index) {
+                            Customers customer = getCurrentPageCustomers()[index];
+                            return GestureDetector(
+                              onTap: () {
+                                showDialog(
+                                  context: context,
+                                  builder: (BuildContext context) {
+                                    return CustomerDetailPage(customer: customer);
+                                  },
+                                );
                               },
+                              child: Container(
+                                margin: EdgeInsets.symmetric(
+                                    horizontal: 20.0, vertical: 8.0),
+                                decoration: BoxDecoration(
+                                  color: isDarkMode
+                                      ? MyColors.darkWhiteColor
+                                      : MyColors.whiteColor,
+                                  borderRadius: BorderRadius.circular(20.0),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.grey.withOpacity(0.2),
+                                      spreadRadius: 0.5,
+                                      blurRadius: 7,
+                                      offset: const Offset(
+                                        0,
+                                        0,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                child: ListTile(
+                                  title: Text(
+                                    customer.nombre ?? '',
+                                    style: TextStyle(
+                                      fontSize: 17,
+                                      color: isDarkMode
+                                          ? MyColors.whiteColor
+                                          : MyColors.darkWhiteColor,
+                                    ),
+                                  ),
+                                  subtitle: Text(
+                                    customer.documento ?? '',
+                                    style: TextStyle(
+                                      color: isDarkMode
+                                          ? MyColors.whiteColor
+                                          : MyColors.darkWhiteColor,
+                                    ),
+                                  ),
+                                  trailing: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Container(
+                                        margin: EdgeInsets.only(right: 5),
+                                        decoration: BoxDecoration(
+                                          color: MyColors.orangeColor.withOpacity(
+                                              0.1), // Ajusta la opacidad y el color del fondo
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: IconButton(
+                                          icon: Icon(Icons.edit),
+                                          color: MyColors.orangeColor,
+                                          onPressed: () {
+                                            _controller.editCustomer(customer);
+                                          },
+                                        ),
+                                      ),
+                                      Container(
+                                        decoration: BoxDecoration(
+                                          color: MyColors.redColor.withOpacity(
+                                              0.1), // Ajusta la opacidad y el color del fondo
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: IconButton(
+                                          icon: Icon(Icons.delete),
+                                          color: MyColors.redColor,
+                                          onPressed: () {
+                                            _controller.deleteCustomer(
+                                                customer.id.toString());
+                                          },
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
                             );
                           },
-                          child: Container(
-                            margin: EdgeInsets.symmetric(
-                                horizontal: 20.0, vertical: 8.0),
-                            decoration: BoxDecoration(
-                              color: isDarkMode
-                                  ? MyColors.darkWhiteColor
-                                  : MyColors.whiteColor,
-                              borderRadius: BorderRadius.circular(20.0),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.grey.withOpacity(0.2),
-                                  spreadRadius: 0.5,
-                                  blurRadius: 7,
-                                  offset: const Offset(
-                                    0,
-                                    0,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            child: ListTile(
-                              title: Text(
-                                customer.nombre ?? '',
-                                style: TextStyle(
-                                  fontSize: 17,
-                                  color: isDarkMode
-                                      ? MyColors.whiteColor
-                                      : MyColors.darkWhiteColor,
-                                ),
-                              ),
-                              subtitle: Text(
-                                customer.documento ?? '',
-                                style: TextStyle(
-                                  color: isDarkMode
-                                      ? MyColors.whiteColor
-                                      : MyColors.darkWhiteColor,
-                                ),
-                              ),
-                              trailing: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Container(
-                                    margin: EdgeInsets.only(right: 5),
-                                    decoration: BoxDecoration(
-                                      color: MyColors.orangeColor.withOpacity(
-                                          0.1), // Ajusta la opacidad y el color del fondo
-                                      shape: BoxShape.circle,
-                                    ),
-                                    child: IconButton(
-                                      icon: Icon(Icons.edit),
-                                      color: MyColors.orangeColor,
-                                      onPressed: () {
-                                        _controller.editCustomer(customer);
-                                      },
-                                    ),
-                                  ),
-                                  Container(
-                                    decoration: BoxDecoration(
-                                      color: MyColors.redColor.withOpacity(
-                                          0.1), // Ajusta la opacidad y el color del fondo
-                                      shape: BoxShape.circle,
-                                    ),
-                                    child: IconButton(
-                                      icon: Icon(Icons.delete),
-                                      color: MyColors.redColor,
-                                      onPressed: () {
-                                        _controller.deleteCustomer(
-                                            customer.id.toString());
-                                      },
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
+                        ),
+                      ),
           ),
           Container(
             alignment: Alignment.center,
