@@ -7,7 +7,7 @@ import 'package:http/http.dart' as http;
 
 class LotsProvider {
   final String _url = Enviroment.API_APPAVICOLA;
-  final String _api = "/api/Lots";
+  final String _api = "/api/lote";
   BuildContext? context;
 
   LotsProvider();
@@ -24,11 +24,11 @@ class LotsProvider {
     if (response.statusCode == 200) {
       List<dynamic> data = json.decode(response.body);
       List<Lots> lotsList = data.map((json) => Lots.fromJson(json)).toList();
-      print('Clientes cargados: ${lotsList.length}');
+      print('Lotes cargados: ${lotsList.length}');
       return lotsList;
     } else {
       print('Error en fetchLots: ${response.statusCode}');
-      return []; // Maneja el error retornando una lista vacía
+      return []; 
     }
   } catch (e) {
     print('Error en fetchLots: $e');

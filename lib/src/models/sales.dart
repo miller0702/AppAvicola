@@ -1,16 +1,25 @@
 import 'dart:convert';
 
-Sales SalesFromJson(String str) => Sales.fromJson(json.decode(str));
-Sales SalesFromJsonUpdate(String str, Sales data) =>
+double parseStringToDouble(String value) {
+  try {
+    return double.parse(value);
+  } catch (e) {
+    print('Error parsing string to double: $e');
+    return 0.0;
+  }
+}
+
+
+Sales salesFromJson(String str) => Sales.fromJson(json.decode(str));
+Sales salesFromJsonUpdate(String str, Sales data) =>
     Sales.fromJsonUpdate(json.decode(str), data.toJson());
 
-String SalesToJson(Sales data) => jsonEncode(data.toJson());
+String salesToJson(Sales data) => jsonEncode(data.toJson());
 
 class Sales {
   int? id;
   int? clienteId;
   int? loteId;
-  String? userId;
   int? cantidadAves;
   List<num>? canastasVacias;
   List<num>? canastasLLenas;
@@ -24,7 +33,6 @@ class Sales {
     this.id,
     this.clienteId,
     this.loteId,
-    this.userId,
     this.cantidadAves,
     this.canastasVacias,
     this.canastasLLenas,
@@ -39,12 +47,11 @@ class Sales {
         id: json['id'],
         clienteId: json['cliente_id'],
         loteId: json['lote_id'],
-        userId: json['user_id'],
         cantidadAves: json['cantidadaves'],
-        canastasVacias: List<num>.from(json['canastas_vacias']),
-        canastasLLenas: List<num>.from(json['canastas_llenas']),
-        precioKilo: json['preciokilo'].toDouble(),
-        fecha: DateTime.parse(json['fecha']),
+        canastasVacias: List<num>.from(json['canastas_vacias'] ?? []),
+        canastasLLenas: List<num>.from(json['canastas_llenas'] ?? []),
+        precioKilo: parseStringToDouble(json['preciokilo'].toString()),
+        fecha: json['fecha'] != null ? DateTime.parse(json['fecha']) : null,
         numeroFactura: json['numerofactura'],
         createdAt: json["created_at"] != null
             ? DateTime.parse(json["created_at"])
@@ -60,11 +67,10 @@ class Sales {
         id: json['id'],
         clienteId: json['cliente_id'],
         loteId: json['lote_id'],
-        userId: json['user_id'],
         cantidadAves: json['cantidadaves'],
         canastasVacias: List<num>.from(json['canastas_vacias']),
         canastasLLenas: List<num>.from(json['canastas_llenas']),
-        precioKilo: json['preciokilo'].toDouble(),
+        precioKilo: parseStringToDouble(json['preciokilo'].toString()),
         fecha: DateTime.parse(json['fecha']),
         numeroFactura: json['numerofactura'],
         createdAt: json["created_at"] != null
@@ -83,7 +89,6 @@ class Sales {
         'id': id,
         'cliente_id': clienteId,
         'lote_id': loteId,
-        'user_id': userId,
         'cantidadaves': cantidadAves,
         'canastas_vacias': canastasVacias,
         'canastas_llenas': canastasLLenas,

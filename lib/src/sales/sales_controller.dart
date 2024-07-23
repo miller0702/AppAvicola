@@ -61,11 +61,11 @@ class SalesController {
 
   Future<List<Sales>> getSales() async {
     try {
-      List<Sales> salesList = await salesProvider.fetchSales();
-      return salesList;
+      List<Sales> saleList = await salesProvider.fetchSales();
+      return saleList;
     } catch (e) {
       print('Error en getSales: $e');
-      return []; // Maneja errores devolviendo una lista vacía
+      return [];
     }
   }
 
@@ -109,16 +109,6 @@ class SalesController {
     canastasDiferenciaController.text = diferencia.toString();
     int precioPorKilo = int.tryParse(precioKiloController.text) ?? 0;
     totalVentaController.text = (diferencia * precioPorKilo).toString();
-  }
-
-  Future<List<Sales>> getFood() async {
-    try {
-      List<Sales> foodList = await salesProvider.fetchSales();
-      return foodList;
-    } catch (e) {
-      print('Error en getFood: $e');
-      return [];
-    }
   }
 
   List<Sales> getCurrentPageSales(int pageIndex, int rowsPerPage) {
@@ -173,7 +163,6 @@ class SalesController {
     Sales sales = Sales(
       clienteId: clienteId,
       loteId: loteId,
-      userId: userIdStr,
       cantidadAves: int.tryParse(cantidadAvesStr) ?? 0,
       canastasVacias: canastasVacias,
       canastasLLenas: canastasLLenas,
@@ -231,7 +220,6 @@ class SalesController {
   Future<void> editSales(Sales sales) async {
     clienteIdController.text = sales.clienteId.toString();
     loteIdController.text = sales.loteId.toString();
-    userIdController.text = sales.userId!;
     cantidadAvesController.text = sales.cantidadAves.toString();
     canastasVaciasController.text = sales.canastasVacias?.join(',') ?? '';
     canastasLLenasController.text = sales.canastasLLenas?.join(',') ?? '';
@@ -410,7 +398,6 @@ class SalesController {
                   id: sales.id,
                   clienteId: newClienteId,
                   loteId: newLoteId,
-                  userId: newUserIdStr,
                   cantidadAves: int.tryParse(newCantidadAvesStr) ?? 0,
                   canastasVacias: newCanastasVacias,
                   canastasLLenas: newCanastasLLenas,

@@ -23,7 +23,7 @@ class FoodController {
       return foodList;
     } catch (e) {
       print('Error en getFood: $e');
-      return []; // Maneja errores devolviendo una lista vacía
+      return []; 
     }
   }
 
@@ -32,7 +32,7 @@ class FoodController {
     String cantidadhembraStr = cantidadhembraController.text.trim();
     String fechaStr = fechaController.text.trim();
 
-    // Validación de campos vacíos
+  
     if (cantidadmachoStr.isEmpty ||
         cantidadhembraStr.isEmpty ||
         fechaStr.isEmpty) {
@@ -47,17 +47,15 @@ class FoodController {
       return;
     }
 
-    // Conversión de String a int
     int cantidadmacho = int.tryParse(cantidadmachoStr) ?? 0;
     int cantidadhembra = int.tryParse(cantidadhembraStr) ?? 0;
 
-    // Asegurarse de convertir la fecha a DateTime si es necesario
     DateTime parsedFecha = DateTime.parse(fechaStr);
 
     Food food = Food(
       cantidadmacho: cantidadmacho,
       cantidadhembra: cantidadhembra,
-      fecha: parsedFecha, // Asignar fecha convertida a DateTime
+      fecha: parsedFecha, 
     );
 
     ResponseApi response = await foodProvider.create(food);

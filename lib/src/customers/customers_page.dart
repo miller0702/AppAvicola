@@ -31,18 +31,18 @@ class _CustomersPageState extends State<CustomersPage> {
 
   void _loadCustomers() async {
     setState(() {
-      _isLoading = true; // Mostrar el indicador de carga
+      _isLoading = true;
     });
     try {
       List<Customers> customers = await _controller.getCustomers();
       setState(() {
         _customersList = customers;
-        _isLoading = false; // Ocultar el indicador de carga
+        _isLoading = false;
       });
       print('Clientes cargados: ${_customersList.length}');
     } catch (e) {
       setState(() {
-        _isLoading = false; // Ocultar el indicador de carga en caso de error
+        _isLoading = false;
       });
       print('Error al cargar clientes: $e');
     }

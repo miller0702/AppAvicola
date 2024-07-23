@@ -1,3 +1,6 @@
+import 'package:appAvicola/src/models/customers.dart';
+import 'package:appAvicola/src/models/sales.dart';
+import 'package:appAvicola/src/provider/sales_provider.dart';
 import 'package:appAvicola/src/sales/sales_detail.dart';
 import 'package:appAvicola/src/utils/my_colors.dart';
 import 'package:appAvicola/src/utils/theme_model.dart';
@@ -5,7 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'sales_controller.dart';
-import 'sales_register.dart'; // Asegúrate de importar la nueva página aquí
+import 'sales_register.dart';
 
 class SalesPage extends StatefulWidget {
   const SalesPage({Key? key}) : super(key: key);
@@ -16,14 +19,17 @@ class SalesPage extends StatefulWidget {
 
 class _SalesPageState extends State<SalesPage> {
   final SalesController salesController = SalesController();
+  List<Sales> _saleList = [];
   DateTime? _selectedDate;
   int _rowsPerPage = 5;
   int _pageIndex = 0;
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
     salesController.init(context, () {});
+    _loadSale();
   }
 
   void _openRegisterPage() {
@@ -32,12 +38,43 @@ class _SalesPageState extends State<SalesPage> {
     );
   }
 
+  void _loadSale() async {
+    setState(() {
+      _isLoading = true; 
+    });
+    try {
+      List<Sales> sales = await salesController.getSales();
+      setState(() {
+        _saleList = sales;
+      });
+      print('Ventas cargadas: ${_saleList.length}');
+    } catch (e) {
+      print('Error al cargar ventas: $e');
+    } finally {
+      setState(() {
+        _isLoading = false; 
+      });
+    }
+  }
+
   Future<void> _refresh() async {
-    salesController.getSales();
+    if (_saleList.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('No se han encontrado ventas.'),
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 2),
+        ),
+      );
+    }
+    _loadSale(); // Recargar datos al hacer pull to refresh
   }
 
   @override
   Widget build(BuildContext context) {
+
+  final salesProvider = Provider.of<SalesProvider>(context);
+
     final themeModel = Provider.of<ThemeModel>(context);
     final isDarkMode = themeModel.isDarkMode;
 
@@ -57,12 +94,14 @@ class _SalesPageState extends State<SalesPage> {
               ),
             ),
             SizedBox(width: 8),
-            Text('REGISTRO DE VENTAS',
-                style: TextStyle(
-                  color: isDarkMode
-                      ? MyColors.whiteColor
-                      : MyColors.darkWhiteColor,
-                )),
+            Text(
+              'REGISTRO DE VENTAS',
+              style: TextStyle(
+                color: isDarkMode
+                    ? MyColors.whiteColor
+                    : MyColors.darkWhiteColor,
+              ),
+            ),
           ],
         ),
         backgroundColor: isDarkMode ? MyColors.darkWhiteColor : MyColors.whiteColor,
@@ -98,11 +137,28 @@ class _SalesPageState extends State<SalesPage> {
                               initialDate: _selectedDate ?? DateTime.now(),
                               firstDate: DateTime(2000),
                               lastDate: DateTime(2101),
+                              builder: (BuildContext context, Widget? child) {
+                                return Theme(
+                                  data: ThemeData.light().copyWith(
+                                    colorScheme: ColorScheme.light(
+                                      primary: MyColors.primaryColor,
+                                      onPrimary: Colors.white,
+                                      surface: isDarkMode
+                                          ? MyColors.darkWhiteColor
+                                          : MyColors.whiteColor,
+                                      onSurface: isDarkMode
+                                          ? MyColors.whiteColor
+                                          : MyColors.darkWhiteColor,
+                                    ),
+                                  ),
+                                  child: child!,
+                                );
+                              },
                             );
                             if (pickedDate != null) {
                               setState(() {
                                 _selectedDate = pickedDate;
-                                _pageIndex = 0; // Resetear la página al cambiar la fecha
+                                _pageIndex = 0; 
                               });
                             }
                           },
@@ -113,15 +169,15 @@ class _SalesPageState extends State<SalesPage> {
                       ElevatedButton(
                         onPressed: () {
                           setState(() {
-                            _selectedDate = null; // Limpiar filtro de fecha
-                            _pageIndex = 0; // Resetear la página al limpiar el filtro
+                            _selectedDate = null; 
+                            _pageIndex = 0; 
                             Navigator.of(context).pop();
                           });
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.red,
+                          backgroundColor: MyColors.redColor,
                         ),
-                        child: Text('Limpiar Filtro', style: TextStyle(color: Colors.white)),
+                        child: Text('Limpiar Filtro', style: TextStyle(color: MyColors.whiteColor)),
                       ),
                     ],
                   );
@@ -138,7 +194,7 @@ class _SalesPageState extends State<SalesPage> {
           Padding(
             padding: EdgeInsets.symmetric(horizontal: 20.0),
             child: ElevatedButton(
-              onPressed: _openRegisterPage, // Cambia la acción del botón
+              onPressed: _openRegisterPage,
               style: ElevatedButton.styleFrom(
                 backgroundColor: MyColors.primaryColor,
               ),
@@ -149,64 +205,122 @@ class _SalesPageState extends State<SalesPage> {
             ),
           ),
           Expanded(
-            child: salesController.salesList.isEmpty
+            child: _isLoading
                 ? Center(child: CircularProgressIndicator())
-                : RefreshIndicator(
-                    onRefresh: _refresh,
-                    child: ListView.builder(
-                      itemCount: salesController.getCurrentPageSales(_pageIndex, _rowsPerPage).length,
-                      itemBuilder: (context, index) {
-                        var sale = salesController.getCurrentPageSales(_pageIndex, _rowsPerPage)[index];
-                        return GestureDetector(
-                          onTap: () {
-                            showDialog(
-                              context: context,
-                              builder: (BuildContext context) {
-                                return SalesDetailPage(sale: sale);
+                : _saleList.isEmpty
+                    ? Center(child: Text('Actualmente no hay registros.', style: TextStyle(color: isDarkMode ? MyColors.whiteColor : MyColors.darkWhiteColor),))
+                    : RefreshIndicator(
+                        onRefresh: _refresh,
+                        child: ListView.builder(
+                          itemCount: getCurrentPageSales().length,
+                          itemBuilder: (context, index) {
+                            Sales sale = getCurrentPageSales()[index];
+                            String? clienteNombre = salesController.customersList
+                                .firstWhere((customer) => customer.id == sale.clienteId, orElse: () => Customers(id: -1, nombre: 'Desconocido'))
+                                .nombre;
+                            return GestureDetector(
+                              onTap: () {
+                                showDialog(
+                                  context: context,
+                                  builder: (BuildContext context) {
+                                    return SalesDetailPage(sale: sale, salesController: salesController, salesProvider: salesProvider,);
+                                  },
+                                );
                               },
+                              child: Container(
+                                margin: EdgeInsets.symmetric(horizontal: 20.0, vertical: 8.0),
+                                decoration: BoxDecoration(
+                                  color: isDarkMode
+                                      ? MyColors.darkWhiteColor
+                                      : MyColors.whiteColor,
+                                  borderRadius: BorderRadius.circular(20.0),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.grey.withOpacity(0.2),
+                                      spreadRadius: 0.5,
+                                      blurRadius: 7,
+                                      offset: const Offset(0, 0),
+                                    ),
+                                  ],
+                                ),
+                                child: ListTile(
+                                  title: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'N° Factura: ${sale.numeroFactura}',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          color: isDarkMode
+                                              ? MyColors.whiteColor
+                                              : MyColors.darkWhiteColor,
+                                        ),
+                                      ),
+                                      Text(
+                                        'Cliente: $clienteNombre',
+                                        style: TextStyle(
+                                          fontSize: 15,
+                                          color: isDarkMode
+                                              ? MyColors.whiteColor
+                                              : MyColors.darkWhiteColor,
+                                        ),
+                                      ),
+                                      Text(
+                                        'Fecha: ${DateFormat('dd-MM-yyyy').format(sale.fecha!)}',
+                                        style: TextStyle(
+                                          fontSize: 15  ,
+                                          color: isDarkMode
+                                              ? MyColors.whiteColor
+                                              : MyColors.darkWhiteColor,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  trailing: Icon(Icons.arrow_forward_ios, color: MyColors.primaryColor),
+                                ),
+                              ),
                             );
                           },
-                          child: Card(
-                            elevation: 3,
-                            child: ListTile(
-                              title: Text('Número de Factura: ${sale.numeroFactura}'),
-                              subtitle: Text('Fecha: ${DateFormat('yyyy-MM-dd').format(sale.fecha!)}'),
-                              trailing: Icon(Icons.arrow_forward_ios, color: MyColors.primaryColor),
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
+                        ),
+                      ),
           ),
-          Padding(
-            padding: EdgeInsets.symmetric(vertical: 10),
+          Container(
+            alignment: Alignment.center,
+            padding: EdgeInsets.all(16.0),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 IconButton(
-                  onPressed: () {
-                    setState(() {
-                      if (_pageIndex > 0) {
-                        _pageIndex--;
-                      }
-                    });
-                  },
-                  icon: Icon(Icons.arrow_back_ios, color: MyColors.primaryColor),
+                  icon: Icon(
+                    Icons.arrow_back,
+                    color: isDarkMode ? MyColors.whiteColor : MyColors.darkWhiteColor,
+                  ),
+                  onPressed: _pageIndex > 0
+                      ? () {
+                          setState(() {
+                            _pageIndex--;
+                          });
+                        }
+                      : null,
                 ),
                 Text(
                   'Página ${_pageIndex + 1}',
-                  style: TextStyle(color: isDarkMode ? MyColors.whiteColor : MyColors.darkWhiteColor),
+                  style: TextStyle(
+                    color: isDarkMode ? MyColors.whiteColor : MyColors.darkWhiteColor,
+                  ),
                 ),
                 IconButton(
-                  onPressed: () {
-                    setState(() {
-                      if ((_pageIndex + 1) * _rowsPerPage < salesController.salesList.length) {
-                        _pageIndex++;
-                      }
-                    });
-                  },
-                  icon: Icon(Icons.arrow_forward_ios, color: MyColors.primaryColor),
+                  icon: Icon(
+                    Icons.arrow_forward,
+                    color: isDarkMode ? MyColors.whiteColor : MyColors.darkWhiteColor,
+                  ),
+                  onPressed: (_pageIndex + 1) * _rowsPerPage < _saleList.length
+                      ? () {
+                          setState(() {
+                            _pageIndex++;
+                          });
+                        }
+                      : null,
                 ),
               ],
             ),
@@ -214,5 +328,13 @@ class _SalesPageState extends State<SalesPage> {
         ],
       ),
     );
+  }
+
+  List<Sales> getCurrentPageSales() {
+    int startIndex = _pageIndex * _rowsPerPage;
+    int endIndex = (startIndex + _rowsPerPage < _saleList.length)
+        ? startIndex + _rowsPerPage
+        : _saleList.length;
+    return _saleList.sublist(startIndex, endIndex);
   }
 }

@@ -12,12 +12,16 @@ import 'package:appAvicola/src/customers/customers_page.dart';
 import 'package:appAvicola/src/supplies/supplies_page.dart';
 import 'package:appAvicola/src/suppliers/suppliers_page.dart';
 import 'package:appAvicola/src/utils/theme_model.dart';
+import 'package:appAvicola/src/provider/sales_provider.dart';
 import 'splash_screen.dart';
 
 void main() {
   runApp(
-    ChangeNotifierProvider(
-      create: (_) => ThemeModel(),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => ThemeModel()),
+        ChangeNotifierProvider(create: (_) => SalesProvider()),
+      ],
       child: const MyApp(),
     ),
   );
@@ -49,13 +53,11 @@ class MyApp extends StatelessWidget {
           theme: ThemeData(
             primaryColor: MyColors.primaryColor,
             scaffoldBackgroundColor: MyColors.whiteColor,
-            // Otros atributos de tema si es necesario
           ),
           darkTheme: ThemeData(
             brightness: Brightness.dark,
             primaryColor: MyColors.darkPrimaryColor,
             scaffoldBackgroundColor: MyColors.darkWhiteColor,
-            // Otros atributos de tema oscuro si es necesario
           ),
           themeMode: ThemeMode.system,
         );
