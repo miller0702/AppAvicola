@@ -6,6 +6,7 @@ import 'package:appAvicola/src/utils/my_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../models/sales.dart';
+import 'package:appAvicola/src/utils/theme_model.dart';
 import 'package:provider/provider.dart';
 
 class SalesDetailPage extends StatelessWidget {
@@ -56,10 +57,15 @@ class SalesDetailPage extends StatelessWidget {
     final String formattedPrecioKilo = currencyFormat.format(precioKilo);
     final String formattedValorFactura = currencyFormat.format(valorFactura);
 
+    final themeModel = Provider.of<ThemeModel>(context);
+    final isDarkMode = themeModel.isDarkMode;
+
     return Dialog(
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20.0),
       ),
+      backgroundColor:
+          isDarkMode ? MyColors.darkWhiteColor : MyColors.whiteColor,
       child: SizedBox(
         width: double.maxFinite,
         child: Padding(
@@ -75,80 +81,126 @@ class SalesDetailPage extends StatelessWidget {
               SizedBox(height: 12),
               Text(
                 'Fecha: ${DateFormat('dd-MM-yyyy').format(sale.fecha!)}',
-                style: TextStyle(fontSize: 18),
+                style: TextStyle(
+                    fontSize: 18,
+                    color: isDarkMode
+                        ? MyColors.whiteColor
+                        : MyColors.darkWhiteColor),
               ),
               SizedBox(height: 8),
               Text(
                 'Número de Factura: ${sale.numeroFactura}',
-                style: TextStyle(fontSize: 18),
+                style: TextStyle(
+                    fontSize: 18,
+                    color: isDarkMode
+                        ? MyColors.whiteColor
+                        : MyColors.darkWhiteColor),
               ),
               SizedBox(height: 8),
               Text(
                 'Cliente: $cliente',
-                style: TextStyle(fontSize: 18),
+                style: TextStyle(
+                    fontSize: 18,
+                    color: isDarkMode
+                        ? MyColors.whiteColor
+                        : MyColors.darkWhiteColor),
               ),
               SizedBox(height: 8),
               Text(
                 'Lote: $lote',
-                style: TextStyle(fontSize: 18),
+                style: TextStyle(
+                    fontSize: 18,
+                    color: isDarkMode
+                        ? MyColors.whiteColor
+                        : MyColors.darkWhiteColor),
               ),
               SizedBox(height: 8),
               Text(
                 'Cantidad de Aves: ${sale.cantidadAves}',
-                style: TextStyle(fontSize: 18),
+                style: TextStyle(
+                    fontSize: 18,
+                    color: isDarkMode
+                        ? MyColors.whiteColor
+                        : MyColors.darkWhiteColor),
               ),
               SizedBox(height: 8),
               Text(
                 'Canastas Vacías: ${canastasVaciasSum.toStringAsFixed(1)} kg',
-                style: TextStyle(fontSize: 18),
+                style: TextStyle(
+                    fontSize: 18,
+                    color: isDarkMode
+                        ? MyColors.whiteColor
+                        : MyColors.darkWhiteColor),
               ),
               SizedBox(height: 8),
               Text(
                 'Canastas Llenas: ${canastasLlenasSum.toStringAsFixed(1)} kg',
-                style: TextStyle(fontSize: 18),
+                style: TextStyle(
+                    fontSize: 18,
+                    color: isDarkMode
+                        ? MyColors.whiteColor
+                        : MyColors.darkWhiteColor),
               ),
               SizedBox(height: 8),
               Text(
                 'Total Kilos: ${totalKilos.toStringAsFixed(1)} kg',
-                style: TextStyle(fontSize: 18),
+                style: TextStyle(
+                    fontSize: 18,
+                    color: isDarkMode
+                        ? MyColors.whiteColor
+                        : MyColors.darkWhiteColor),
               ),
               SizedBox(height: 8),
               Text(
                 'Precio por Kilo: ${formattedPrecioKilo}',
-                style: TextStyle(fontSize: 18),
+                style: TextStyle(
+                    fontSize: 18,
+                    color: isDarkMode
+                        ? MyColors.whiteColor
+                        : MyColors.darkWhiteColor),
               ),
               SizedBox(height: 8),
               Text(
                 'Valor de la Factura: ${formattedValorFactura}',
-                style: TextStyle(fontSize: 18),
+                style: TextStyle(
+                    fontSize: 18,
+                    color: isDarkMode
+                        ? MyColors.whiteColor
+                        : MyColors.darkWhiteColor),
               ),
-              ElevatedButton(
-                onPressed: () async {
-                  if (sale.id != null) {
-                    print('Iniciando compartición de factura para venta ID: ${sale.id}');
-                    await salesProvider.shareInvoice(sale.id!, context);
-                  } else {
-                    print('Error: El ID de la venta es nulo');
-                  }
-                },
-                child: Text('Compartir Factura'),
-              ),
-              SizedBox(height: 16),
-              Align(
-                alignment: Alignment.centerRight,
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                  child: Text(
-                    'Cerrar',
-                    style: TextStyle(color: MyColors.whiteColor),
+              SizedBox(height: 12),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: MyColors.primaryColor,
+                    ),
+                    onPressed: () async {
+                      if (sale.id != null) {
+                        print(
+                            'Iniciando compartición de factura para venta ID: ${sale.id}');
+                        await salesProvider.shareInvoice(sale.id!, context);
+                      } else {
+                        print('Error: El ID de la venta es nulo');
+                      }
+                    },
+                    child: Text('Compartir Factura', style: TextStyle(color: MyColors.whiteColor),),
                   ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: MyColors.redColor,
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                    child: Text(
+                      'Cerrar',
+                      style: TextStyle(color: MyColors.whiteColor),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: MyColors.redColor,
+                    ),
                   ),
-                ),
-              ),
+                ],
+              )
             ],
           ),
         ),
